@@ -1,0 +1,12 @@
+Django>=5.0,<5.3
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3
+google-auth>=2.29
+requests>=2.31
+drf-spectacular>=0.27
+psycopg[binary]>=3.1
+youtube-transcript-api>=1.0
+deep-translator>=1.11
+python-decouple>=3.8
+gunicorn>=23.0
+whitenoise>=6.9

@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label='videos' %}">Videos</a>
+  &rsaquo; <a href="{% url 'admin:videos_video_changelist' %}">Videos</a>
+  &rsaquo; Bulk import snippets
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module aligned">
+    <h2>Bulk import YouTube snippets</h2>
+    <div style="padding: 12px 16px; line-height: 1.7;">
+      <h3>How to enter the snippets</h3>
+      <p>Paste <strong>one snippet per line</strong> in this exact order, separating the four columns with the vertical bar <code>|</code>:</p>
+      <p><code>YouTube URL with start time | END TIME | LANGUAGE | LEVELS</code></p>
+      <ul>
+        <li><strong>YouTube URL:</strong> include a start timestamp, such as <code>?t=31</code>, <code>&amp;t=1m05s</code>, or <code>?start=31</code>.</li>
+        <li><strong>End time:</strong> seconds (<code>50</code>) or time format (<code>00:50</code> or <code>01:10:20</code>).</li>
+        <li><strong>Language:</strong> an active language name or code, for example <code>English</code> or <code>en</code>.</li>
+        <li><strong>Levels:</strong> one level, or multiple levels separated with semicolons, for example <code>A1;A2</code>. A separate snippet is created for each level.</li>
+        <li>A video is created automatically when its YouTube ID is not already in the database. Existing videos must use the same content language.</li>
+        <li>Blank lines and lines beginning with <code>#</code> are ignored. Repeated snippets are skipped.</li>
+      </ul>
+      <p><strong>Currently active languages:</strong>
+        {% for language in available_languages %}{{ language.name }} (<code>{{ language.code }}</code>){% if not forloop.last %}, {% endif %}{% empty %}None available{% endfor %}
+      </p>
+      <p><strong>Currently active levels:</strong>
+        {% for level in available_levels %}{{ level.name }} (<code>{{ level.code }}</code>){% if not forloop.last %}, {% endif %}{% empty %}None available{% endfor %}
+      </p>
+      <h3>Example — copy and edit</h3>
+      <pre style="white-space: pre-wrap; background: var(--darkened-bg); padding: 10px; border-radius: 4px;">https://youtu.be/huPMNLlXFNg?t=31 | 00:50 | English | A1
+https://youtu.be/huPMNLlXFNg?t=681 | 11:40 | English | B1
+https://youtu.be/huPMNLlXFNg?t=1 | 00:20 | en | A1;A2
+https://youtu.be/huPMNLlXFNg?t=601 | 10:20 | English | B1;B2</pre>
+      <p><strong>Important:</strong> use <code>|</code> between columns, not commas. The URL's timestamp sets the start; the second column sets the end.</p>
+    </div>
+  </div>
+
+  {% if errors %}
+    <div class="errornote">
+      <strong>Nothing was imported. Fix these issues, then validate again:</strong>
+      <ul>
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if warnings %}
+    <div class="messagelist">
+      {% for warning in warnings %}<div class="warning">{{ warning }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% if preview %}
+    <div class="successnote" style="padding: 12px; margin: 12px 0; border-left: 4px solid #2e8540; background: var(--darkened-bg);">
+      <strong>Validation successful.</strong>
+      <p>Snippets/level assignments: {{ preview.snippets }}</p>
+      <p>Distinct YouTube videos: {{ preview.videos }}</p>
+      <p>New videos to create: {{ preview.new_videos }}</p>
+      <p>Languages in this batch: {{ preview.languages|join:", " }}</p>
+      <p>Review the list before confirming. No changes have been saved yet.</p>
+      <div style="overflow-x: auto; max-height: 360px; overflow-y: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead><tr>
+            <th style="text-align:left; padding:6px;">Input line</th>
+            <th style="text-align:left; padding:6px;">YouTube ID</th>
+            <th style="text-align:left; padding:6px;">Start (s)</th>
+            <th style="text-align:left; padding:6px;">End (s)</th>
+            <th style="text-align:left; padding:6px;">Language</th>
+            <th style="text-align:left; padding:6px;">Level</th>
+          </tr></thead>
+          <tbody>
+            {% for item in preview.items %}
+              <tr>
+                <td style="padding:6px;">{{ item.line }}</td>
+                <td style="padding:6px;">{{ item.video_id }}</td>
+                <td style="padding:6px;">{{ item.start_time }}</td>
+                <td style="padding:6px;">{{ item.end_time }}</td>
+                <td style="padding:6px;">{{ item.language }}</td>
+                <td style="padding:6px;">{{ item.level }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <fieldset class="module aligned">
+      <div class="form-row">
+        {{ form.rows.errors }}
+        <label for="id_rows">Paste snippet rows:</label>
+        {{ form.rows }}
+      </div>
+    </fieldset>
+    <div class="submit-row">
+      <button type="submit" name="action" value="validate" class="default">Validate rows</button>
+      {% if validated %}
+        <button type="submit" name="action" value="import" class="default">Confirm and import</button>
+      {% endif %}
+      <a class="closelink" href="{% url 'admin:videos_video_changelist' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:videos_video_changelist' %}">Videos</a>
+  &rsaquo; <a href="{% url 'admin:videos_video_change' original.pk %}">{{ original }}</a>
+  &rsaquo; Import JSON snippets
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module aligned">
+    <h2>Import JSON snippets for {{ original }}</h2>
+    <p style="padding: 12px 16px;">Upload a UTF-8 JSON file containing a list of snippets with <code>start_seconds</code> (or <code>start</code>), <code>end_seconds</code> (or <code>end</code>), and <code>level</code>. This import applies to the current video only.</p>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="submit-row">
+        <input type="submit" value="Import JSON snippets" class="default">
+        <a class="closelink" href="{% url 'admin:videos_video_change' original.pk %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

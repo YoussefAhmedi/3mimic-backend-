@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  {% if change and not is_popup %}
+    <li>
+      <a href="{% url 'admin:videos_video_import_json' original.pk %}" class="historylink">
+        Import JSON snippets
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'admin:videos_video_bulk_import' %}" class="historylink">
+        Bulk import snippets
+      </a>
+    </li>
+  {% endif %}
+{% endblock %}

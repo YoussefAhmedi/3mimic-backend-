@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:videos_video_bulk_import' %}" class="addlink">
+      Bulk import YouTube snippets
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:videos_video_import_clips' %}" class="addlink">
+      Import clips (JSON: captions + quiz)
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

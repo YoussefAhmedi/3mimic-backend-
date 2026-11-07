@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label='videos' %}">Videos</a>
+  &rsaquo; <a href="{% url 'admin:videos_video_changelist' %}">Videos</a>
+  &rsaquo; Import clips
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module aligned">
+    <h2>Import clips (JSON)</h2>
+    <div style="padding: 12px 16px; line-height: 1.7;">
+      <p>One block per video. <code>captions</code> may mix hand-written lines with <code>"Automatic"</code>
+        (= take YouTube's captions live for the parts you did not write). Manual lines win where they overlap.
+        Add <code>quiz</code> to use a clip in the level-placement quiz. Re-importing a clip updates it.</p>
+      <pre style="white-space: pre-wrap; background: var(--darkened-bg); padding: 10px; border-radius: 4px;">{
+  "video": "https://youtu.be/FkZo43H39OY",
+  "lang": "en",
+  "clips": [
+    { "time": ["00:00:30", "00:00:40"], "level": ["B1", "B1.1"], "captions": ["Automatic"] },
+    { "time": ["00:03:22", "00:03:39"], "level": ["B1.1"],
+      "captions": [["00:03:22", "00:03:24", "Where's the dragon warrior?"], "Automatic",
+                   ["00:03:27", "00:03:30", "You think I'm a fool?"]],
+      "quiz": { "question": "Who is being looked for?", "options": ["The dragon warrior", "A fool", "Tyler"], "correct": 1 } }
+  ]
+}</pre>
+      <p><strong>Languages:</strong>
+        {% for l in available_languages %}<code>{{ l.code }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+        &nbsp; <strong>Levels:</strong>
+        {% for l in available_levels %}<code>{{ l.code }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+      </p>
+    </div>
+  </div>
+
+  {% if errors %}
+    <div class="errornote"><strong>Nothing was imported. Fix these issues, then validate again:</strong>
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  {% if warnings %}
+    <div class="messagelist">{% for w in warnings %}<div class="warning">{{ w }}</div>{% endfor %}</div>
+  {% endif %}
+
+  {% if preview %}
+    <div style="padding: 12px; margin: 12px 0; border-left: 4px solid #2e8540; background: var(--darkened-bg);">
+      <strong>Validation successful — nothing saved yet.</strong>
+      <p>{{ preview.snippets }} snippet/level rows · {{ preview.videos }} videos ({{ preview.new_videos }} new) ·
+        {{ preview.quiz_snippets }} quiz rows · {{ preview.with_auto_captions }} with automatic captions</p>
+      <div style="overflow-x:auto; max-height: 320px; overflow-y:auto;">
+        <table style="width:100%; border-collapse: collapse;">
+          <thead><tr><th>Video</th><th>Start</th><th>End</th><th>Level</th><th>Manual lines</th><th>Auto</th><th>Quiz</th></tr></thead>
+          <tbody>{% for i in preview.items %}
+            <tr><td>{{ i.video_id }}</td><td>{{ i.start }}</td><td>{{ i.end }}</td><td>{{ i.level }}</td>
+                <td>{{ i.manual }}</td><td>{{ i.captions }}</td><td>{% if i.quiz %}yes{% endif %}</td></tr>
+          {% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="module aligned"><fieldset class="module aligned">
+      <div class="form-row">{{ form.payload.label_tag }} {{ form.payload }}</div>
+      <div class="form-row">{{ form.json_file.label_tag }} {{ form.json_file }}</div>
+    </fieldset></div>
+    <div class="submit-row">
+      <input type="submit" name="action" value="validate" class="default">
+      {% if preview %}<input type="submit" name="action" value="import">{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
