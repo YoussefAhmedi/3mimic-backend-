@@ -127,3 +127,15 @@ WIKTIONARY_USER_AGENT = env(
 
 TRANSCRIPTION_PROVIDER = env("TRANSCRIPTION_PROVIDER", "whisper")
 WHISPER_MODEL = env("WHISPER_MODEL", "base")
+# Production security settings
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in env("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
