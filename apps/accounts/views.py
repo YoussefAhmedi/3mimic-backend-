@@ -84,3 +84,20 @@ class MeView(APIView):
         if payload:
             payload["is_new"] = created
         return Response({"user": UserSerializer(user).data, "learning_profile": payload})
+
+    def delete(self, request):
+        user = request.user
+
+        if user.is_staff or user.is_superuser:
+            return Response(
+                {
+                    "detail": "Admin accounts cannot be deleted from the app",
+                    "code": "admin_account",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        with transaction.atomic():
+            user.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
