@@ -14,6 +14,14 @@ class GoogleAuthSerializer(serializers.Serializer):
     native_language = serializers.SlugRelatedField(slug_field="code", queryset=Language.objects.all(), required=False)
 
 
+class DeviceAuthSerializer(serializers.Serializer):
+    """Anonymous (no login) start: the app generates a random id once and keeps it on the phone."""
+    device_id = serializers.RegexField(r"^[A-Za-z0-9_-]{16,64}$", max_length=64)
+    learning_language = serializers.SlugRelatedField(slug_field="code", queryset=Language.objects.filter(is_active=True),
+                                                     required=False)
+    native_language = serializers.SlugRelatedField(slug_field="code", queryset=Language.objects.all(), required=False)
+
+
 class UserSerializer(serializers.ModelSerializer):
     native_language = serializers.SlugRelatedField(slug_field="code", read_only=True)
     learning_language = serializers.SlugRelatedField(slug_field="code", read_only=True)
